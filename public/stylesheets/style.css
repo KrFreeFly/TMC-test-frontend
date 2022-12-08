@@ -1,0 +1,59 @@
+/* Основная таблица */
+
+.select {
+    height: 350px;
+    width: 600px;
+    overflow: auto;
+}
+
+.clickable:hover {
+    cursor: pointer;
+}
+
+/* Cтиль таблиц */
+.table {
+    border: 1px solid #eee;
+    table-layout: auto;
+    width: 100%;
+}
+.table th {
+    font-weight: bold;
+    padding: 5px;
+    background: #efefef;
+    border: 1px solid #dddddd;
+}
+.table td{
+    padding: 5px 10px;
+    border: 1px solid #eee;
+    text-align: left;
+}
+.table tbody {
+    white-space: nowrap;
+}
+.table tbody tr:nth-child(odd){
+    background: #fff;
+}
+.table tbody tr:nth-child(even){
+    background: #F7F7F7;
+}
+
+.main {
+    margin-top: 50px;
+    margin-left: 100px;
+    width: 600px;
+}
+
+.saved {
+    display: flex;
+    align-items: center;
+}
+
+article {
+    flex: 1;
+}
+
+.flexBox {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
