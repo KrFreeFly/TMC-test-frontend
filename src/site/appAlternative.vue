@@ -228,7 +228,6 @@ export default {
         }
         this.page = this.page + 1;
         const data = await this.getOptions({});
-        console.log(data);
         if (data) this.options = this.options.concat(data);
       }
     },
