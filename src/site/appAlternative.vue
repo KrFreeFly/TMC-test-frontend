@@ -6,7 +6,9 @@
       Ввод текста в заголовке First name или Last name включает соответствующий фильтр.
       Настройки сортировки и фильтрации сохраняются при перезагрузке страницы.
       <br><br>
-      При вводе текста в окна поиска в колонках First name и Last name производится фильтрация результатов.
+      При отсутствии фильтрации или сортировки включается режим свободной drag-n-drop сортировки.
+      Возможно ручное перемещение элементов списка. Результат ручной сортировки сохраняется при перезагрузке
+      страницы и после применения фильтров или сортировок.
       <br><br>
       При нажатии на кнопку "Сохранить" происходит добавление выбранной строки в избранные.
       При нажатии на кнопку "Удалить" происходит удаление выбранной строки из избранного.
@@ -44,27 +46,30 @@
         </th>
         <th style="width: 50px">Save</th>
         </thead>
-        <tbody>
-        <tr v-for="user in this.options">
-          <td>
-            № {{ user.id }}
-          </td>
-          <td>
-            {{ user.firstName }}
-          </td>
-          <td>
-            {{ user.lastName }}
-          </td>
-          <td class="clickable">
-            <div v-if="user.saved">
-              <button @click="removeSaved(user.id)">Удалить</button>
-            </div>
-            <div v-else>
-              <button @click="saveSelected(user.id)">Добавить</button>
-            </div>
-          </td>
-        </tr>
-        </tbody>
+
+        <draggable
+          v-model="options"
+          tag="tbody"
+          item-key="id"
+          @end="onDrop"
+          :disabled="disableDraggable"
+        >
+          <template #item="{ element }">
+            <tr>
+              <td scope="row"> № {{ element.id }}</td>
+              <td>{{ element.firstName }}</td>
+              <td>{{ element.lastName }}</td>
+              <td class="clickable">
+                <div v-if="element.saved">
+                  <button @click="removeSaved(element.id)">Удалить</button>
+                </div>
+                <div v-else>
+                  <button @click="saveSelected(element.id)">Добавить</button>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </draggable>
       </table>
     </div>
     <br><br>
@@ -78,7 +83,9 @@
           <td>
             <div class="flexBox">
               <article>{{ user.firstName }} {{ user.lastName }}</article>
-              <article><button @click="removeSaved(user.id)">Удалить</button></article>
+              <article>
+                <button @click="removeSaved(user.id)">Удалить</button>
+              </article>
             </div>
           </td>
         </tr>
@@ -90,8 +97,12 @@
 
 <script>
 import axios from "axios";
+import draggable from "vuedraggable";
 
 export default {
+  components: {
+    draggable
+  },
   data () {
     return {
       options: [],
@@ -102,23 +113,36 @@ export default {
       total: 0,
       sortColumn: "",
       sortDirection: "",
-      filterFirstName: "",
-      filterLastName: ""
+      filterFirstName: undefined,
+      filterLastName: undefined,
+      drag: false,
     };
   },
+  computed: {
+    disableDraggable() {
+      console.log(this.sortColumn, this.sortDirection, this.filterLastName, this.filterFirstName)
+      return this.sortColumn !== ''
+        || this.sortDirection !== ''
+        || (this.filterFirstName !== undefined && this.filterFirstName !== '')
+        || (this.filterLastName !== undefined && this.filterLastName !== '')
+    }
+  },
   watch: {
-    filterFirstName: async function () {
+    filterFirstName: async function() {
       await this.searchOptions();
     },
-    filterLastName: async function () {
+    filterLastName: async function() {
       await this.searchOptions();
-    },
+    }
   },
   methods: {
     async sort (column) {
       if (this.sortColumn === column) {
         if (this.sortDirection === "asc") {
           this.sortDirection = "desc";
+        } else if (this.sortDirection === "desc") {
+          this.sortDirection = "";
+          this.sortColumn = "";
         } else {
           this.sortDirection = "asc";
         }
@@ -132,7 +156,7 @@ export default {
     async getOptions ({ lastOptions }) {
       const params = {
         limit: this.limit,
-        page: this.page,
+        page: this.page
       };
       if (lastOptions === true) params.lastOptions = true;
       if (this.filterFirstName !== "") params.filterFirstName = this.filterFirstName;
@@ -207,6 +231,16 @@ export default {
         console.log(data);
         if (data) this.options = this.options.concat(data);
       }
+    },
+    async onDrop () {
+      await axios({
+          method: "put",
+          url: `http://localhost:3000/api/options`,
+          data: {
+            options: this.options
+          }
+        }
+      );
     }
   },
   async mounted () {
