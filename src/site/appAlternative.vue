@@ -121,7 +121,6 @@ export default {
   },
   computed: {
     disableDraggable() {
-      console.log(this.sortColumn, this.sortDirection, this.filterLastName, this.filterFirstName)
       return this.sortColumn !== ''
         || this.sortDirection !== ''
         || (this.filterFirstName !== undefined && this.filterFirstName !== '')
